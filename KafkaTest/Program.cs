@@ -12,42 +12,53 @@ namespace KafkaTest {
     public const string Kafka = "192.168.1.51:9092";
     public const string Topic = "test-topic";
     public const string ConsumerGroupName = "test-topic-consumer";
-    private static readonly string[] Helps = { "produce [count=10]:生产消息", "help:查看帮助", "quit:退出" };
+
+    private static readonly string[]
+      Helps = { "start-consume:开始消费", "produce [count=10]:生产消息", "help:查看帮助", "quit:退出" };
+
+    private static bool _isStartConsume;
 
     private static void Main(string[] args) {
       Log.Logger = Tools.CreateLogger();
 
       Console.Title = "Kafka测试";
       var ts = new CancellationTokenSource();
-      Task.Run(() => {
-        ConsumeKafkaMessage(ts.Token);
-      }, ts.Token);
 
-      PrintHelps();
+      Tools.PrintHelps(Helps);
       var isStop = false;
       do {
         var input = Console.ReadLine();
-        var cmds = Tools.HandleCommands(input);
-        if (cmds == null || cmds.Any() == false) {
+        var commands = Tools.HandleCommands(input);
+        if (commands == null || commands.Any() == false) {
           continue;
         }
 
-        switch (cmds[0].Command) {
-          case "produce":
-            if (cmds.Count == 1 || cmds[1].Command != "count") {
+        switch (commands[0].Command) {
+          case"start-consume":
+            if (_isStartConsume) {
+              break;
+            }
+
+            Task.Run(() => {
+              ConsumeKafkaMessage(ts.Token);
+              _isStartConsume = true;
+            }, ts.Token);
+            break;
+          case"produce":
+            if (commands.Count == 1 || commands[1].Command != "count") {
               ProduceMessages(10).Wait(ts.Token);
             }
             else {
-              if (int.TryParse(cmds[1].Argument, out var count)) {
+              if (int.TryParse(commands[1].Argument, out var count)) {
                 ProduceMessages(count).Wait(ts.Token);
               }
             }
 
             break;
-          case "help":
-            PrintHelps();
+          case"help":
+            Tools.PrintHelps(Helps);
             break;
-          case "quit":
+          case"quit":
             isStop = true;
             break;
           default:
@@ -90,14 +101,7 @@ namespace KafkaTest {
       }
     }
 
-    private static void PrintHelps() {
-      Console.WriteLine("帮助信息:");
-      foreach (var help in Helps) {
-        Console.WriteLine($"  {help}");
-      }
-
-      Console.WriteLine();
-    }
+   
 
     private static void ConsumeKafkaMessage(in CancellationToken cancellationToken) {
       var conf = new ConsumerConfig {

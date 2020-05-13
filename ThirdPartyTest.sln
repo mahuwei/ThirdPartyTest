@@ -10,9 +10,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		Readme.md = Readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{D8E1B2EE-C28A-4BC1-BE9C-182B4D10B908}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{D8E1B2EE-C28A-4BC1-BE9C-182B4D10B908}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ConsulTest", "ConsulTest", "{6CDAA4E7-5B33-4FB5-8E53-F59F19A3BD7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsulTestConsole", "ConsulTest\ConsulTestConsole\ConsulTestConsole.csproj", "{25828A05-A72D-4FA5-B38E-1CFAABD224B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,9 +33,16 @@ Global
 		{D8E1B2EE-C28A-4BC1-BE9C-182B4D10B908}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8E1B2EE-C28A-4BC1-BE9C-182B4D10B908}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8E1B2EE-C28A-4BC1-BE9C-182B4D10B908}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25828A05-A72D-4FA5-B38E-1CFAABD224B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25828A05-A72D-4FA5-B38E-1CFAABD224B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25828A05-A72D-4FA5-B38E-1CFAABD224B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25828A05-A72D-4FA5-B38E-1CFAABD224B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{25828A05-A72D-4FA5-B38E-1CFAABD224B6} = {6CDAA4E7-5B33-4FB5-8E53-F59F19A3BD7D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1C594467-165A-49C5-A0CD-1045B5E26895}
