@@ -1,18 +1,22 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Common;
 using Confluent.Kafka;
+using Serilog;
 
 namespace KafkaTest {
   internal class Program {
     public const string Kafka = "192.168.1.51:9092";
     public const string Topic = "test-topic";
     public const string ConsumerGroupName = "test-topic-consumer";
-
-    private static readonly string[] Helps = { "proudce:生产消息", "quit:退出" };
+    private static readonly string[] Helps = { "produce [count=10]:生产消息", "help:查看帮助", "quit:退出" };
 
     private static void Main(string[] args) {
+      Log.Logger = Tools.CreateLogger();
+
       Console.Title = "Kafka测试";
       var ts = new CancellationTokenSource();
       Task.Run(() => {
@@ -23,9 +27,22 @@ namespace KafkaTest {
       var isStop = false;
       do {
         var input = Console.ReadLine();
-        switch (input) {
+        var cmds = Tools.HandleCommands(input);
+        if (cmds == null || cmds.Any() == false) {
+          continue;
+        }
+
+        switch (cmds[0].Command) {
           case "produce":
-            ProduceMessages(100).Wait(ts.Token);
+            if (cmds.Count == 1 || cmds[1].Command != "count") {
+              ProduceMessages(10).Wait(ts.Token);
+            }
+            else {
+              if (int.TryParse(cmds[1].Argument, out var count)) {
+                ProduceMessages(count).Wait(ts.Token);
+              }
+            }
+
             break;
           case "help":
             PrintHelps();
@@ -34,6 +51,10 @@ namespace KafkaTest {
             isStop = true;
             break;
           default:
+            if (string.IsNullOrEmpty(input)) {
+              break;
+            }
+
             Console.WriteLine($"无效指令:{input}");
             break;
         }
@@ -45,7 +66,7 @@ namespace KafkaTest {
     }
 
     private static async Task ProduceMessages(int count) {
-      Console.WriteLine("开始发送消息");
+      Log.Information("开始发送消息...");
       var stopWatch = new Stopwatch();
       stopWatch.Start();
       try {
@@ -58,14 +79,14 @@ namespace KafkaTest {
           }
 
           stopWatch.Stop();
-          Console.WriteLine($"发送：{count}条消息，用时：{stopWatch.ElapsedMilliseconds / 1000}s.\n");
+          Log.Information($"发送：{count}条消息，用时：{stopWatch.ElapsedMilliseconds}ms.");
         }
         catch (Exception ex) {
-          Console.WriteLine($"发送出错:{ex.Message}\n");
+          Log.Logger.Error(ex, $"发送出错:{ex.Message}");
         }
       }
-      catch (Exception exception) {
-        Console.WriteLine($"准备发送出错:{exception.Message}\n");
+      catch (Exception ex) {
+        Log.Logger.Error(ex, $"准备发送出错:{ex.Message}");
       }
     }
 
@@ -101,38 +122,40 @@ namespace KafkaTest {
               continue;
             }
 
-            Console.WriteLine($"{DateTime.Now:HH:mm:ss} 获取到消息:{cr.Message.Value} TopicPartition:{cr.TopicPartition.Partition.Value} Offset:{cr.TopicPartitionOffset.Offset.Value}");
+            Log.Information($"获取到消息:{cr.Message.Value};" + "  {@topicPartition}; {@topicPartitionOffset}",
+              cr.TopicPartition,
+              cr.TopicPartitionOffset.Offset);
             //Thread.Sleep(500);
           }
           catch (ConsumeException e) {
-            Console.WriteLine($"消费出错(ConsumeException):{e.Message}");
+            Log.Logger.Error(e, $"消费出错(ConsumeException):{e.Message}");
           }
           catch (TopicPartitionOffsetException e) {
-            Console.WriteLine($"消费出错(TopicPartitionOffsetException):{e.Message}");
+            Log.Logger.Error(e, $"消费出错(TopicPartitionOffsetException):{e.Message}");
           }
           catch (KafkaException e) {
-            Console.WriteLine($"消费出错(KafkaException):{e.Message}");
+            Log.Logger.Error(e, $"消费出错(KafkaException):{e.Message}");
           }
           catch (OperationCanceledException e) {
-            Console.WriteLine($"消费出错(OperationCanceledException):{e.Message}");
+            Log.Logger.Error(e, $"消费出错(OperationCanceledException):{e.Message}");
             break;
           }
           catch (Exception e) {
-            Console.WriteLine($"消费出错(Exception):{e.Message}");
+            Log.Logger.Error(e, $"消费出错(Exception):{e.Message}");
           }
 
           if (cancellationToken.IsCancellationRequested) {
-            Console.WriteLine("cancellationToken.IsCancellationRequested 退出线程。");
+            Log.Information("cancellationToken.IsCancellationRequested 退出线程。");
             break;
           }
         }
       }
       catch (Exception ex) {
-        Console.WriteLine($"订阅出错:{ex.Message}");
+        Log.Logger.Error(ex, $"订阅出错:{ex.Message}");
       }
 
       consumer.Close();
-      Console.WriteLine("消费线程结束。");
+      Log.Information("消费线程结束。");
     }
   }
 }
