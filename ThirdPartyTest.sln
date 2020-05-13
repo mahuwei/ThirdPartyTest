@@ -1,6 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KafkaTest", "KafkaTest\KafkaTest.csproj", "{96952C55-4CD7-48F3-A23D-89F8C9F6117E}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KafkaTest", "KafkaTest\KafkaTest.csproj", "{96952C55-4CD7-48F3-A23D-89F8C9F6117E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{72D8E6C1-6497-4A8B-866E-3CBB4A1AA64A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +22,11 @@ Global
 		{96952C55-4CD7-48F3-A23D-89F8C9F6117E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96952C55-4CD7-48F3-A23D-89F8C9F6117E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96952C55-4CD7-48F3-A23D-89F8C9F6117E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C594467-165A-49C5-A0CD-1045B5E26895}
 	EndGlobalSection
 EndGlobal
