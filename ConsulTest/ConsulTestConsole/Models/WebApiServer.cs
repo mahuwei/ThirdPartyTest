@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Consul;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Winton.Extensions.Configuration.Consul;
 
 namespace ConsulTestConsole.Models {
   public class WebApiServer {
@@ -19,6 +21,37 @@ namespace ConsulTestConsole.Models {
       var host = hostBuilder.UseSerilog()
         .ConfigureAppConfiguration((hostingContext, config) => {
           config.AddCommandLine(source => source.Args = new[] { $"ip={ip}", $"port={port}" });
+          // 添加Consul关联配置信息。
+          config.AddConsul("ServerConfig", options => {
+            options.ConsulConfigurationOptions = configuration => {
+              options.ConsulConfigurationOptions =
+                cco => {
+                  cco.Address = new Uri($"{Program.ConsulIp}:{Program.ConsulPort}");
+                };
+              options.Optional = true;
+              options.ReloadOnChange = true;
+              options.OnLoadException = exceptionContext => {
+                // 启动时会报错，不过不影响，后续正常。
+                Console.WriteLine("error:" + exceptionContext.Exception.Message);
+                exceptionContext.Ignore = true;
+              };
+            };
+          });
+
+          config.AddConsul(Program.TempConfigName, options => {
+            options.ConsulConfigurationOptions = configuration => {
+              options.ConsulConfigurationOptions =
+                cco => {
+                  cco.Address = new Uri($"{Program.ConsulIp}:{Program.ConsulPort}");
+                };
+              options.Optional = true;
+              options.ReloadOnChange = true;
+              options.OnLoadException = exceptionContext => {
+                Console.WriteLine("error:" + exceptionContext.Exception.Message);
+                exceptionContext.Ignore = true;
+              };
+            };
+          });
         })
         .ConfigureWebHostDefaults(webBuilder => {
           webBuilder.UseKestrel(options => {
@@ -57,22 +90,24 @@ namespace ConsulTestConsole.Models {
 
     public void ConfigureServices(IServiceCollection services) {
       services.AddControllers();
-      services.AddHealthChecks();
 
-      //services.AddSingleton(Program.MessageCenterTestCurrent);
-      //services.AddSingleton(Program.BankClientTestCurrent);
+      services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(consulConfig => {
+        consulConfig.Address = new Uri($"{Program.ConsulIp}:{Program.ConsulPort}");
+      }, null, handlerOverride => {
+        //disable proxy of httpClient handler  
+        handlerOverride.Proxy = null;
+        handlerOverride.UseProxy = false;
+      }));
+
+      services.Configure<BaseConfig>(Configuration.GetSection("BaseConfig"));
+      services.Configure<TempConfig>(Configuration.GetSection("TempConfig"));
+      services.AddHostedService<TestService>();
+
+      services.AddHealthChecks();
     }
 
     public void Configure(IApplicationBuilder app, ILogger<Startup> logger) {
       app.UseRouting();
-      // app.UseCors(builder =>
-      //   builder.AllowAnyHeader()
-      //     .AllowAnyMethod()
-      //     .SetIsOriginAllowed(_ => true)
-      //     .AllowCredentials());
-
-      // app.UseAuthorization();
-
       app.UseEndpoints(endpoints => {
         endpoints.MapControllers();
         endpoints.MapHealthChecks("/health");
