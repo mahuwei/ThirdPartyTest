@@ -12,7 +12,7 @@ using Serilog;
 
 namespace ConsulTestConsole {
   internal class Program {
-    public const string LocalIp = "192.168.1.129";
+    public const string LocalIp = "192.168.1.117";
     public const int LocalPort = 5100;
     public const string ConsulIp = "http://192.168.1.51";
     public const int ConsulPort = 8500;
